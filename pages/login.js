@@ -1,13 +1,38 @@
-export default async function handler(req, res) {
-  const { username } = req.body;
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
-  const allowed = ["Igor", "RodriguesIgor"];
+export default function LoginPage() {
+  const [username, setUsername] = useState('');
+  const router = useRouter();
 
-  if (!allowed.includes(username)) {
-    return res.status(403).json({ error: "not allowed" });
-  }
+  const fazerLogin = async () => {
+    const resposta = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    });
 
-  const token = Buffer.from(username).toString('base64');
+    const dados = await resposta.json();
 
-  return res.json({ token });
+    if (dados.token) {
+      // Salva o token no navegador para usar depois
+      localStorage.setItem('peralta_token', dados.token);
+      // Manda você para o dashboard
+      router.push('/dashboard');
+    } else {
+      alert('Usuário não permitido!');
+    }
+  };
+
+  return (
+    <div style={{ padding: '50px', textAlign: 'center', fontFamily: 'sans-serif' }}>
+      <h1>Peralta Studios - Login</h1>
+      <input 
+        type="text" 
+        placeholder="Digite seu nome" 
+        onChange={(e) => setUsername(e.target.value)} 
+      />
+      <button onClick={fazerLogin}>Entrar</button>
+    </div>
+  );
 }
